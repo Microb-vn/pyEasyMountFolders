@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
+import csv
 import argparse
 
 print("this is script .py")
@@ -18,7 +19,7 @@ def get_arguments():
 
 def check_folder(folder, action):
     # See if folder exists, is empty and is writeable and/or can be created
-    # When the action is 'verify', a check is done of the folder is available and empty and/or can be created
+    # When the action is 'verify', a check is done whether the folder is available and empty and/or can be created
     # When the action is 'create', the folder will be checked, and if missing it will be created
     # The function returns "Ok" if all looks good
     folderparts = folder.split("/")
@@ -50,18 +51,38 @@ def check_folder(folder, action):
                     os.mkdir(pathtotest.rstrip('/'), mode=0o774 )
 
         folderroot = pathtotest
+    # End of for loop
 
     # We are in the target folder. Is it empty?
     checkdir = os.listdir(folderroot)
     if not len(checkdir) == 0:
-        return errortext + "; the found folder '" + folderroot + "' is not empty, so not a valid target for file-mounts"
+        return errortext + "; the found folder '" + folderroot + "' is not empty, so it cannot be used as target for file-mounts"
 
     return "Ok"
-        
 
 
 def main():
-    # Testing
+ 
+
+    # Get Commandline Arguments
+    refresh, file = get_arguments()
+
+    ############################### for testing
+    refresh = 'No'
+    file = 'folders.default.csv'
+    ############################### end for testing
+    # Read the file
+    with open(file, mode ='r')as infile:
+   
+        # reading the CSV file
+        csvFile = csv.DictReader(infile)
+ 
+        # displaying the contents of the CSV file
+        for key in csvFile.keys():
+            print(key)
+            print(csvFile[key])
+    return
+   # Testing
     folder = "/xhome/rob"
     result = check_folder(folder, "create")
     print(result)
@@ -69,11 +90,6 @@ def main():
     #End Testing
 
 
-    # Get Commandline Arguments
-    refresh, file = get_arguments()
-
-    print(refresh)
-    print(file)
 
 if __name__ == '__main__':
     main()
