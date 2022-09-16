@@ -1,0 +1,14 @@
+{
+    "Mappings": [
+        {
+            "LocalFolder": "nassie/video",
+            "RemoteHost": "192.168.123.253",
+            "RemoteFolder": "video"
+        },
+        {
+            "LocalFolder": "nassie/audio",
+            "RemoteHost": "192.168.123.253",
+            "RemoteFolder": "audio"
+        }
+    ]
+}
