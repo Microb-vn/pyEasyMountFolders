@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
-import csv
+import json
 import argparse
 
 print("this is script .py")
@@ -67,20 +67,23 @@ def main():
     # Get Commandline Arguments
     refresh, file = get_arguments()
 
+    # Set foldernames
+    scriptFolder = os.path.dirname(__file__)
+    scriptSettingsFolder = scriptFolder.replace("/.py","")
+
     ############################### for testing
     refresh = 'No'
-    file = 'folders.default.csv'
+    file = 'folders.default.json'
     ############################### end for testing
+    file = scriptSettingsFolder + "/" + file
     # Read the file
     with open(file, mode ='r')as infile:
-   
-        # reading the CSV file
-        csvFile = csv.DictReader(infile)
- 
-        # displaying the contents of the CSV file
-        for key in csvFile.keys():
-            print(key)
-            print(csvFile[key])
+        mappings = json.load(infile)
+        for x in mappings.values():
+            for y in x:
+                print(y["LocalFolder"])
+                print(y["RemoteHost"])
+                print(y["RemoteFolder"])
     return
    # Testing
     folder = "/xhome/rob"
