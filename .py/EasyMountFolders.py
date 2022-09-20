@@ -60,30 +60,82 @@ def check_folder(folder, action):
 
     return "Ok"
 
+def processfile(file):
+    try:
+        action = 'open settings file ' + file
+        with open(file, mode ='r')as infile:
+            action = 'interpret json settings file ' + file + '; the json syntax is invalid, please check!'
+            fileContent = json.load(infile)
+            action = 'extract the mappings from json settings file ' + file + '; the object -Mappings- is not found in the file.'
+            mappings = fileContent["Mappings"]
+    except:
+        return 'ERROR: Error occured while attemtping to ' + action
+
+    if len(mappings) == 0:
+        return 'ERROR: Did not find any items in the json mappings object in file ' + file + ';please check'
+
+    itemcount = 0
+    for mapping in mappings:
+        itemcount = itemcount + 1
+        action = 'attempt to extract values in mappings item in file ' + file + ' for item # ' + str(itemcount)
+
+        actionLocalFolder = action + '; checking LocalFolder parameter'
+        try:
+            work = mapping["LocalFolder"]
+        except:
+            return "Error: while making an " + actionLocalFolder + "; parameter not found"
+        if not work:
+            return "Error: while making an " + actionLocalFolder + "; parameter is empty"
+
+        actionRemoteHost = action + '; checking RemoteHost parameter'
+        try:
+            work = mapping["RemoteHost"]
+        except:
+            return "Error: while making an " + actionRemoteHost + "; parameter not found"
+        if not work:
+            return "Error: while making an " + actionRemoteHost + "; parameter is empty"
+
+        actionRemoteFolder = action + '; checking RemoteFolder parameter'
+        try:
+            work = mapping["RemoteFolder"]
+        except:
+            return "Error: while making an " + actionRemoteFolder + "; parameter not found"
+        if not work:
+            return "Error: while making an " + actionRemoteFolder + "; parameter is empty"
+    
+    return mappings
 
 def main():
- 
-
-    # Get Commandline Arguments
+     # Get Commandline Arguments
     refresh, file = get_arguments()
 
     # Set foldernames
     scriptFolder = os.path.dirname(__file__)
     scriptSettingsFolder = scriptFolder.replace("/.py","")
 
-    ############################### for testing
-    refresh = 'No'
-    file = 'folders.default.json'
-    ############################### end for testing
+    # Set default parameters (if required)
+    if not refresh:
+        refresh = 'No'
+    if not file:
+        file = 'folders.default.json'
+    
+    # Validate the refresh parameter
+    urefresh = refresh.upper()
+    if not urefresh in ['YES', 'NO']:
+        print('Invalid RefreshCredentials parameter value found -' + refresh + '-; Should be either -Yes- or -No-.') 
+
     file = scriptSettingsFolder + "/" + file
-    # Read the file
-    with open(file, mode ='r')as infile:
-        mappings = json.load(infile)
-        for x in mappings.values():
-            for y in x:
-                print(y["LocalFolder"])
-                print(y["RemoteHost"])
-                print(y["RemoteFolder"])
+    # Read the file and check its contents
+    mappings = processfile(file)
+    if type(mappings) is str:
+        print(mappings)
+        return
+    
+    # mappings now contains a list with items with fields:
+    # - LocalFolder
+    # - RemoteHost
+    # - RemoteFolder
+
     return
    # Testing
     folder = "/xhome/rob"
