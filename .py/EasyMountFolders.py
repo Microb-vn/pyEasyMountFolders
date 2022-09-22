@@ -3,8 +3,8 @@ import os
 import sys
 import json
 import argparse
-
-print("this is script .py")
+import platform
+import subprocess
 
 def get_arguments():
     # Get Commandline Arguments
@@ -13,8 +13,8 @@ def get_arguments():
     parser.add_argument('-MappingsFile')
     args=parser.parse_args()
 
-    print(args.RefreshCredentials)
-    print(args.MappingsFile)
+    # print(args.RefreshCredentials)
+    # print(args.MappingsFile)
     return args.RefreshCredentials, args.MappingsFile
 
 def check_folder(folder, action):
@@ -86,6 +86,11 @@ def processfile(file):
             return "Error: while making an " + actionLocalFolder + "; parameter not found"
         if not work:
             return "Error: while making an " + actionLocalFolder + "; parameter is empty"
+        
+        # Does the local folder exist, and is it writable and empty (or can it be created if it doesnt exist yet)?
+        result = check_folder(work, 'Verify')
+        if not result == "Ok":
+            return "Error: while making an " + actionLocalFolder + "; folder does not exist and/or is not writeable"
 
         actionRemoteHost = action + '; checking RemoteHost parameter'
         try:
@@ -105,7 +110,42 @@ def processfile(file):
     
     return mappings
 
+def unmount_all():
+    mount_result = subprocess.getoutput(
+        f"sudo mount | grep 'type cifs'")
+    if not mount_result:
+        return
+    
+    mount_results = mount_result.split('\n')
+    for mount_result in mount_results:
+        uncEnd = mount_result.find(' on ')
+        unc = mount_result[:uncEnd]
+        mountPointBegin = uncEnd + 4
+        mountPointEnd = mount_result.find(' type cifs ')
+        mountPoint = mount_result[mountPointBegin:mountPointEnd]
+
+        print('-' + unc + '-')
+        print('-' + mountPoint + '-')
+        try:
+            umount_result = subprocess.getoutput(
+                f"sudo umount " + mountPoint)
+            if umount_result:
+                return "ERROR: Could not unmount network drive from " + mountPoint + "; " + umount_result
+        except:
+            dummy = None
+    return "Ok"
+
 def main():
+    # Is it linux? If yes, we're good to go
+    currentPlatform = platform.system()
+    if currentPlatform != 'Linux':
+        raise Exception('Platform is not supported.')
+    user = os.getenv("SUDO_USER")
+    if user is None:
+        user = os.getenv("USER")
+    if user is None:
+        raise Exception('Current user is None.')
+
      # Get Commandline Arguments
     refresh, file = get_arguments()
 
@@ -122,19 +162,22 @@ def main():
     # Validate the refresh parameter
     urefresh = refresh.upper()
     if not urefresh in ['YES', 'NO']:
-        print('Invalid RefreshCredentials parameter value found -' + refresh + '-; Should be either -Yes- or -No-.') 
+        raise Exception('Invalid RefreshCredentials parameter value found -' + refresh + '-; Should be either -Yes- or -No-.') 
 
     file = scriptSettingsFolder + "/" + file
     # Read the file and check its contents
     mappings = processfile(file)
     if type(mappings) is str:
-        print(mappings)
+        raise Exception(mappings)
         return
     
     # mappings now contains a list with items with fields:
     # - LocalFolder
     # - RemoteHost
     # - RemoteFolder
+    result = unmount_all()
+
+    # Try to execute the mappings
 
     return
    # Testing
