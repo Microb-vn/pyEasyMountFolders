@@ -45,7 +45,7 @@ def check_folder(folder, action):
             if not os.access(folderroot, os.X_OK | os.W_OK): # Can we write to the folder?
                 return errortext + "; the path '" + pathtotest.rstrip('/') + "' does not exist yet, but cannot create it: you're not authorized to write to '" + folderroot + "'"
             else:
-                if action == "verify":
+                if action.upper() == "VERIFY":
                     return "Ok"
                 else:
                     os.mkdir(pathtotest.rstrip('/'), mode=0o774 )
@@ -114,7 +114,7 @@ def unmount_all():
     mount_result = subprocess.getoutput(
         f"sudo mount | grep 'type cifs'")
     if not mount_result:
-        return
+        return "Ok"
     
     mount_results = mount_result.split('\n')
     for mount_result in mount_results:
@@ -141,30 +141,49 @@ def main():
     # Is it linux? If yes, we're good to go
     currentPlatform = platform.system()
     if currentPlatform != 'Linux':
-        raise Exception('Platform is not supported.')
+        raise Exception('ERROR:Platform is not supported.')
+    
+    print("INFO: Script " + os.path.basename(__file__) + " is triggered, Starting its execution now...")
+    print("INFO: Checking logged in user")
+
     user = os.getenv("SUDO_USER")
     if user is None:
         user = os.getenv("USER")
-    if user is None:
-        raise Exception('Current user is None.')
+        print("INFO: Normal user " + user + " found; expect a sudo password login durin this script execution!")
+    elif user is None:
+        raise Exception('ERROR:Current user is None.')
+    else:
+        print("INFO: Super user " + user + " found.")
 
-     # Get Commandline Arguments
+    # Get Commandline Arguments
     refresh, file = get_arguments()
 
     # Set foldernames
     scriptFolder = os.path.dirname(__file__)
     scriptSettingsFolder = scriptFolder.replace("/.py","")
+    scriptCacheFolder = scriptFolder.replace("/.py","/.cache")
+    print("INFO: Checking required working directory " + scriptCacheFolder )
+    if not os.path.isdir(scriptCacheFolder):
+        try:
+            os.mkdir(scriptCacheFolder, mode=0o774)
+        except:
+            raise Exception("ERROR: Cannot create a required working directory " + scriptCacheFolder + ". Please fix the issue and try again.")
 
     # Set default parameters (if required)
     if not refresh:
         refresh = 'No'
     if not file:
         file = 'folders.default.json'
-    
+
     # Validate the refresh parameter
     urefresh = refresh.upper()
     if not urefresh in ['YES', 'NO']:
-        raise Exception('Invalid RefreshCredentials parameter value found -' + refresh + '-; Should be either -Yes- or -No-.') 
+        raise Exception('ERROR:Invalid RefreshCredentials parameter value found -' + refresh + '-; Should be either -Yes- or -No-.') 
+    
+    print("INFO: Based on trigger command used, the script assumes that -RefreshCredentials " + refresh + " and -MappingsFile " + file + " is to be used.")
+
+    # Check the password file
+
 
     file = scriptSettingsFolder + "/" + file
     # Read the file and check its contents
