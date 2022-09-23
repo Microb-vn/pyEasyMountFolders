@@ -119,9 +119,11 @@ def unmount_all():
     mount_results = mount_result.split('\n')
     for mount_result in mount_results:
         uncEnd = mount_result.find(' on ')
+        mountPointEnd = mount_result.find(' type cifs ')
+        if uncEnd == -1 or mountPointEnd == -1:
+            return "ERROR: Could not determine if cifs mounts already exist; last seen error: " + mount_result
         unc = mount_result[:uncEnd]
         mountPointBegin = uncEnd + 4
-        mountPointEnd = mount_result.find(' type cifs ')
         mountPoint = mount_result[mountPointBegin:mountPointEnd]
 
         print('-' + unc + '-')
@@ -176,6 +178,8 @@ def main():
     # - RemoteHost
     # - RemoteFolder
     result = unmount_all()
+    if result != 'Ok':
+        raise Exception(result)
 
     # Try to execute the mappings
 
