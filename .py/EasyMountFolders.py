@@ -5,8 +5,7 @@ import json
 import argparse
 import platform
 import subprocess
-import colorama
-from colorama import Fore
+import getpass
 
 def get_arguments():
     # Get Commandline Arguments
@@ -28,10 +27,12 @@ def check_folder(folder, action):
     errortext = "ERROR: Found path to validate: '" + folder + "'"
 
     if len(folderparts) < 2:
-        return errortext + "; Path must at least be one level deep (e.g. /mnt or special/rob"
+        return errortext + "; Path must at least be one level deep (e.g. /mnt, ~/mnt or special/rob"
 
     if folderparts[0] == "":
         folderroot = "/"
+    elif folderparts[0] == "~":
+        folderroot = f"{os.path.expanduser('~')}/"
     else:
         folderroot = os.getcwd() + "/"
         folderparts.insert(0,folderroot)
@@ -92,7 +93,7 @@ def processfile(file):
         # Does the local folder exist, and is it writable and empty (or can it be created if it doesnt exist yet)?
         result = check_folder(work, 'Verify')
         if not result == "Ok":
-            return "Error: while making an " + actionLocalFolder + "; folder does not exist and/or is not writeable"
+            return "Error: while making an " + actionLocalFolder + "; folder does not exist, is not empty or is not writeable"
 
         actionRemoteHost = action + '; checking RemoteHost parameter'
         try:
@@ -113,9 +114,11 @@ def processfile(file):
     return mappings
 
 def unmount_all():
+    print("INFO: Start the unmount of previously mounted drives")
     mount_result = subprocess.getoutput(
         "sudo mount | grep 'type cifs'")
     if not mount_result:
+        print("INFO: No drives found to unmount")
         return "Ok"
     
     mount_results = mount_result.split('\n')
@@ -128,8 +131,7 @@ def unmount_all():
         mountPointBegin = uncEnd + 4
         mountPoint = mount_result[mountPointBegin:mountPointEnd]
 
-        print('-' + unc + '-')
-        print('-' + mountPoint + '-')
+        print(f"INFO: Unmounting network share {unc} from mountpoint {mountPoint}")
         try:
             umount_result = subprocess.getoutput(
                 f"sudo umount " + mountPoint)
@@ -141,12 +143,56 @@ def unmount_all():
 
 def getcredentials(scriptCacheFolder, user, remoteHost):
     fileName = f"{scriptCacheFolder}/{user}.{remoteHost}.file"
+    # Details of the password file(s)
+    """
+    Password files are in the cache folder and are named currentUserID.host.file, where:
+        currentUserID is the currently logged in user
+        host is the host the login onfo can be used for
+    The files' content is 
+        userid
+        password
+    
+    files are secured and can ONLY be read by the person who created it.
+    """
+    if not os.path.exists(fileName):
+        userId, password = askforcredentials(f"INFO: There is no credentialsfile for host {remoteHost}", remoteHost)
+        if userId.startswith("ERROR: "):
+            return userId
+        outfile = open(fileName, "w")
+        outfile.write(f"{userId}\n")
+        outfile.write(f"{password}\n")
+        outfile.close()
+        # secure the file
+        subprocess.call(['chmod', '0600', fileName])
+    else:
+        # open the file and read content
+        outfile = open(fileName, "r")
+        userId = outfile.readline().strip()
+        password = outfile.readline().strip()
+        if userId == "" or userId == None or password == "" or password == None:
+            return f"ERROR: Invalid credentialsfile found: {fileName}. Please remove it and try to run the script again."
+    return userId, password
 
-
-    return 'Ok'
+def askforcredentials(reason, remoteHost):
+    print(f"{reason}; please input the (full) user ID and password to connect to {remoteHost}.")
+    while True:
+        userId = input("QUESTION: Enter the userID that can be used: ")
+        if userId == None:
+            print("WARNING: No input detected, please try again...")
+            continue
+        break
+    while True:
+        password = getpass.getpass(prompt=f'QUESTION: Enter the password that can be used for user {userId}: ',stream=None)
+        if password == None or password == '':
+            print("WARNING: No input detected, please try again...")
+            continue
+        break
+    return userId, password
 
 def main():
-    # Is it linux? If yes, we're good to go
+    # ===============
+    # CHECK PLATFORM: Is it linux? If yes, we're good to go
+    # ===============
     currentPlatform = platform.system()
     if currentPlatform != 'Linux':
         raise Exception('ERROR:Platform is not supported.')
@@ -154,6 +200,9 @@ def main():
     print("INFO: Script " + os.path.basename(__file__) + " is triggered, Starting its execution now...")
     print("INFO: Checking logged in user")
 
+    # ===========
+    # CHECK USER: Ok if a user is logged in
+    # ===========
     user = os.getenv("SUDO_USER")
     if user is None:
         user = os.getenv("USER")
@@ -163,11 +212,12 @@ def main():
     else:
         print("INFO: Super user " + user + " found.")
 
-    # Get Commandline Arguments
+    # =========================
+    # GET COMMANDLINE ARGUMENTS and set important literals
+    # =========================
     refresh, file = get_arguments()
 
-    # Set foldernames
-    scriptFolder = os.path.dirname(__file__)
+    scriptFolder = os.path.realpath(os.path.dirname(__file__))
     scriptSettingsFolder = scriptFolder.replace("/.py","")
     scriptCacheFolder = scriptFolder.replace("/.py","/.cache")
     print("INFO: Checking required working directory " + scriptCacheFolder )
@@ -191,50 +241,58 @@ def main():
     
     print("INFO: Based on trigger command used, the script assumes that -RefreshCredentials " + refresh + " and -MappingsFile " + file + " is to be used.")
 
+    # #######################
+    # UNMOUNT ALL CIFS DRIVES
+    # #######################
+    result = unmount_all()
+    if result != 'Ok':
+        raise Exception(result)
+
+    # #################
+    # READ SETTINGSFILE and check its content
+    # #################
     file = scriptSettingsFolder + "/" + file
     # Read the file and check its contents
+    print("INFO: Checking the contents of " + file)
     mappings = processfile(file)
     if type(mappings) is str:
         raise Exception(mappings)
         return
+    print("INFO: No anomalies found in " + file)
     
     # mappings now contains a list with items with fields:
     # - LocalFolder
     # - RemoteHost
     # - RemoteFolder
-    result = unmount_all()
-    if result != 'Ok':
-        raise Exception(result)
-
+    
+    # ###########################
     # Try to execute the mappings
+    # ###########################
+    print("INFO: Start creating the drive mappings")
     for mapping in mappings:
         # find the userID & password for that particular mapping
+        print(f"INFO: getting the credentials for host {mapping['RemoteHost']} to create mapping to remote folder {mapping['RemoteFolder']}")
         credentials = getcredentials(scriptCacheFolder, user, mapping['RemoteHost'])
         if type(credentials) is str:
             raise Exception(credentials)
-        
 
-    # Check the password file(s)
-    """
-    Password files are in the cache folder and are named currentUserID.host.file, where:
-        currentUserID is the currently logged in user
-        host is the host the login onfo can be used for
-    The files' content is 
-        userid
-        password
-    
-    files are secured and can ONLY be read by the person who created it.
-    
-    The files are checked for all hosts found in the mappings list
-    """
-    # ######################################
+        # Check if target folder exists (again); but now create it if required
+        result = check_folder(mapping['LocalFolder'], 'Create')
+        if result != 'Ok':
+            raise Exception(result)
+        # Issue command to create the mapping
+        try:
+            print(f"INFO: Attemtping to map remote folder to {mapping['LocalFolder']}")
+            mount_result = subprocess.getoutput(
+                f"sudo mount -t cifs -o username={credentials[0]},password={credentials[1]} //{mapping['RemoteHost']}/{mapping['RemoteFolder']} {mapping['LocalFolder']} ")
+        except:
+            raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; reason unknown... ")
 
+        if mount_result.find("mount error") != -1:
+            raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
+    print("# #### REMEMBER to clear the history entries where passwords occur #####")
 
-
-
-    # #### REMEMBER to clear the history entries where passwords occur #####
-
-
+    print("INFO: Done!")
     return
    # Testing
     folder = "/xhome/rob"

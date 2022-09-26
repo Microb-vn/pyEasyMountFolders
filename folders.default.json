@@ -6,6 +6,11 @@
             "RemoteFolder": "video"
         },
         {
+            "LocalFolder": "~/nassie/rob",
+            "RemoteHost": "192.168.123.253",
+            "RemoteFolder": "homes/rob"
+        },
+        {
             "LocalFolder": "~/nassie/audio",
             "RemoteHost": "192.168.123.253",
             "RemoteFolder": "audio"
