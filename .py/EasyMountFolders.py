@@ -5,6 +5,8 @@ import json
 import argparse
 import platform
 import subprocess
+import colorama
+from colorama import Fore
 
 def get_arguments():
     # Get Commandline Arguments
@@ -112,7 +114,7 @@ def processfile(file):
 
 def unmount_all():
     mount_result = subprocess.getoutput(
-        f"sudo mount | grep 'type cifs'")
+        "sudo mount | grep 'type cifs'")
     if not mount_result:
         return "Ok"
     
@@ -137,6 +139,12 @@ def unmount_all():
             dummy = None
     return "Ok"
 
+def getcredentials(scriptCacheFolder, user, remoteHost):
+    fileName = f"{scriptCacheFolder}/{user}.{remoteHost}.file"
+
+
+    return 'Ok'
+
 def main():
     # Is it linux? If yes, we're good to go
     currentPlatform = platform.system()
@@ -149,7 +157,7 @@ def main():
     user = os.getenv("SUDO_USER")
     if user is None:
         user = os.getenv("USER")
-        print("INFO: Normal user " + user + " found; expect a sudo password login durin this script execution!")
+        print("INFO: Normal user " + user + " found;\033[1;32m expect a sudo password login during this script execution!\033[1;0m")
     elif user is None:
         raise Exception('ERROR:Current user is None.')
     else:
@@ -168,6 +176,7 @@ def main():
             os.mkdir(scriptCacheFolder, mode=0o774)
         except:
             raise Exception("ERROR: Cannot create a required working directory " + scriptCacheFolder + ". Please fix the issue and try again.")
+    print("INFO: Working directory is available")
 
     # Set default parameters (if required)
     if not refresh:
@@ -181,9 +190,6 @@ def main():
         raise Exception('ERROR:Invalid RefreshCredentials parameter value found -' + refresh + '-; Should be either -Yes- or -No-.') 
     
     print("INFO: Based on trigger command used, the script assumes that -RefreshCredentials " + refresh + " and -MappingsFile " + file + " is to be used.")
-
-    # Check the password file
-
 
     file = scriptSettingsFolder + "/" + file
     # Read the file and check its contents
@@ -201,6 +207,33 @@ def main():
         raise Exception(result)
 
     # Try to execute the mappings
+    for mapping in mappings:
+        # find the userID & password for that particular mapping
+        credentials = getcredentials(scriptCacheFolder, user, mapping['RemoteHost'])
+        if type(credentials) is str:
+            raise Exception(credentials)
+        
+
+    # Check the password file(s)
+    """
+    Password files are in the cache folder and are named currentUserID.host.file, where:
+        currentUserID is the currently logged in user
+        host is the host the login onfo can be used for
+    The files' content is 
+        userid
+        password
+    
+    files are secured and can ONLY be read by the person who created it.
+    
+    The files are checked for all hosts found in the mappings list
+    """
+    # ######################################
+
+
+
+
+    # #### REMEMBER to clear the history entries where passwords occur #####
+
 
     return
    # Testing
