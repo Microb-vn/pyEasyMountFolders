@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+from pickle import TRUE
 import sys
 import json
 import argparse
@@ -189,6 +190,17 @@ def askforcredentials(reason, remoteHost):
         break
     return userId, password
 
+def detect_host(host):
+    # ping the host
+    response = os.system("ping -c 1 " + host + " > /dev/null 2>&1")
+
+    # and then check the response...
+    if response == 0:
+        return True
+    else:
+        return False
+
+
 def main():
     # ===============
     # CHECK PLATFORM: Is it linux? If yes, we're good to go
@@ -220,6 +232,7 @@ def main():
     scriptFolder = os.path.realpath(os.path.dirname(__file__))
     scriptSettingsFolder = scriptFolder.replace("/.py","")
     scriptCacheFolder = scriptFolder.replace("/.py","/.cache")
+
     print("INFO: Checking required working directory " + scriptCacheFolder )
     if not os.path.isdir(scriptCacheFolder):
         try:
@@ -270,8 +283,15 @@ def main():
     # ###########################
     print("INFO: Start creating the drive mappings")
     for mapping in mappings:
+        # See if host is available in the network
+        print(f"INFO: Checking host {mapping['RemoteHost']}")
+        result = detect_host(mapping["RemoteHost"])
+        if not result:
+            print(f"INFO: Host {mapping['RemoteHost']} is not detected/does not respond on this network")
+            continue
+
         # find the userID & password for that particular mapping
-        print(f"INFO: getting the credentials for host {mapping['RemoteHost']} to create mapping to remote folder {mapping['RemoteFolder']}")
+        print(f"INFO: Found; getting the credentials for host {mapping['RemoteHost']} to create mapping to remote folder {mapping['RemoteFolder']}")
         credentials = getcredentials(scriptCacheFolder, user, mapping['RemoteHost'])
         if type(credentials) is str:
             raise Exception(credentials)
@@ -290,6 +310,7 @@ def main():
 
         if mount_result.find("mount error") != -1:
             raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
+        print(f"INFO: mapping action executed, network folder is now available in {mapping['LocalFolder']}")
     print("# #### REMEMBER to clear the history entries where passwords occur #####")
 
     print("INFO: Done!")
