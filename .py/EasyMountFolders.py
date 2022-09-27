@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 import os
-from pickle import TRUE
-import sys
 import json
 import argparse
 import platform
@@ -311,7 +309,8 @@ def main():
         if mount_result.find("mount error") != -1:
             raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
         print(f"INFO: mapping action executed, network folder is now available in {mapping['LocalFolder']}")
-    print("# #### REMEMBER to clear the history entries where passwords occur #####")
+    
+    # print("# #### REMEMBER to clear the history entries where passwords occur #####") - rob: no need, the 'inline' cmds are not captured
 
     print("INFO: Done!")
     return
