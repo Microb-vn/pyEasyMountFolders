@@ -11,9 +11,9 @@
             "RemoteFolder": "homes/rob"
         },
         {
-            "LocalFolder": "~/nassie/audio",
+            "LocalFolder": "~/nassie/download",
             "RemoteHost": "192.168.123.253",
-            "RemoteFolder": "audio"
+            "RemoteFolder": "Download"
         }
     ]
 }

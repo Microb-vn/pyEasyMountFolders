@@ -154,7 +154,7 @@ def getcredentials(scriptCacheFolder, user, remoteHost):
     files are secured and can ONLY be read by the person who created it.
     """
     if not os.path.exists(fileName):
-        userId, password = askforcredentials(f"INFO: There is no credentialsfile for host {remoteHost}", remoteHost)
+        userId, password = askforcredentials(f"INFO: There is no (valid) credentialsfile for host {remoteHost}", remoteHost)
         if userId.startswith("ERROR: "):
             return userId
         outfile = open(fileName, "w")
@@ -221,6 +221,8 @@ def main():
         raise Exception('ERROR:Current user is None.')
     else:
         print("INFO: Super user " + user + " found.")
+    uid = os.getuid()
+    gid = os.getgid()
 
     # =========================
     # GET COMMANDLINE ARGUMENTS and set important literals
@@ -289,26 +291,66 @@ def main():
             continue
 
         # find the userID & password for that particular mapping
-        print(f"INFO: Found; getting the credentials for host {mapping['RemoteHost']} to create mapping to remote folder {mapping['RemoteFolder']}")
-        credentials = getcredentials(scriptCacheFolder, user, mapping['RemoteHost'])
-        if type(credentials) is str:
-            raise Exception(credentials)
+        while True:
+            # Credentials loop
+            print(f"INFO: Found; getting the credentials for host {mapping['RemoteHost']} to create mapping to remote folder {mapping['RemoteFolder']}")
+            credentials = getcredentials(scriptCacheFolder, user, mapping['RemoteHost'])
+            if type(credentials) is str:
+                raise Exception(credentials)
 
-        # Check if target folder exists (again); but now create it if required
-        result = check_folder(mapping['LocalFolder'], 'Create')
-        if result != 'Ok':
-            raise Exception(result)
-        # Issue command to create the mapping
-        try:
-            print(f"INFO: Attemtping to map remote folder to {mapping['LocalFolder']}")
-            mount_result = subprocess.getoutput(
-                f"sudo mount -t cifs -o username={credentials[0]},password={credentials[1]} //{mapping['RemoteHost']}/{mapping['RemoteFolder']} {mapping['LocalFolder']} ")
-        except:
-            raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; reason unknown... ")
+            # Check if target folder exists (again); but now create it if required
+            result = check_folder(mapping['LocalFolder'], 'Create')
+            if result != 'Ok':
+                raise Exception(result)
+            
+            # Set question variable to default value
+            question = "X"
+            # Issue command to create the mapping
+            while True:
+                # Mount loop
+                try:
+                    print(f"INFO: Attemtping to map remote folder to {mapping['LocalFolder']}")
+                    mount_result = subprocess.getoutput(
+                        f"sudo mount -t cifs -o username={credentials[0]},password={credentials[1]},uid={uid},gid={gid} //{mapping['RemoteHost']}/{mapping['RemoteFolder']} {mapping['LocalFolder']} ")
+                except:
+                    raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; reason unknown... ")
 
-        if mount_result.find("mount error") != -1:
-            raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
-        print(f"INFO: mapping action executed, network folder is now available in {mapping['LocalFolder']}")
+                if mount_result.find("mount error") != -1:
+                    if mount_result.find('Permission denied') != -1:
+                        print("WARNING: The mount command failed, permission was denied")
+                        print("QUESTION: What you want me to do?")
+                        print("QUESTION: r) retry the mount operation")
+                        print("QUESTION: c) retry the mount operation with other credentials")
+                        print("QUESTION: q) quit script execution")
+                        while True:
+                            # Question loop
+                            question = input("QUESTION: enter your choice (r, c or q):")
+                            if question.upper() == 'Q':
+                                print("INFO: Quiting script execution")
+                                return
+                            elif question.upper() == 'R':
+                                print( "INFO: Retrying the mount operation")
+                                break # get out of the question loop
+                            elif question.upper() == "C":
+                                print("INFO: Retrying the mount operation with new credentials")
+                                fileName = f"{scriptCacheFolder}/{user}.{mapping['RemoteHost']}.file"
+                                os.remove(fileName)
+                                break # Get out of the question loop
+                            else:
+                                print("ERROR: Invalid input!")
+                                continue # do the question loop again
+                            break # the question loop
+                        if question.upper() == "R":
+                            continue # do the mount again
+                        else:
+                            break # get out of the mount loop
+
+                    raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
+                print(f"INFO: mapping action executed, network folder is now available in {mapping['LocalFolder']}")
+                break # Break out of mount loop
+            if question.upper() == "C":
+                continue # the credentials loop
+            break # Break out the credentails loop
     
     # print("# #### REMEMBER to clear the history entries where passwords occur #####") - rob: no need, the 'inline' cmds are not captured
 
