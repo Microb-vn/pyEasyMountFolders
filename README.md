@@ -1,33 +1,34 @@
 # EasyMountFolders
 Linux/Python script to automatically mount SMB/CIFS shared folders when connected to specific network
 
+*Disclaimer: the script stores login credentails in the user's personal folders, with the securiy set so that only the user can access the stored credentials. Mind you that anyone with root access (sudo) can change the file's securiy attributes and with that can get access to the stored credentials! If you find this to big a risc, do not use the script!*
+
+
 # Prerequisites
 to be able to use this script, you need to:
 
-- have **superuser (sudo) access** to your machine.\
-If you or your system admin has objections to that, the sudo rights can b narrowed down to only allow to run *sudo mount* commands.
-- make sure you've **installed Python v3**.\
+- have **superuser (sudo) access** to run mount and umount commands on your machine.\
+You may need to ask your system system admin to configure that for you. He/She can go [here](#configure-minimal-sudo-access-to-be-able-to-run-the-script) to find out how to do that.
+- make sure that **Python v3 is installed**.\
 The script assumes that your python executable is here: /usr/bin/python3\
 When you or your distribution uses another folder to install python, you may need to update that file location in the main script.
 - verify with your network administrator(s) that you have a network account with sufficient access (readonly or Read-Write) to all network shares on the hosts that you will be accessing.
 
-*Disclaimer: the script stores login credentails in the user's personal folders, with the securiy set so that only the user can access the stored credentials. Mind you that anyone with root access (sudo) can change the file's securiy attributes and with that can get access to the stored credentials! If you find this to big a risc, do not use the script!*
-
 # How to install
 
-- **copy the** contents of this **repository** to your local disk drive - preferably into your personal folder\
-*It is highly recommended to use your personal folder to prevent file and folder access issues.*
+- **copy the** contents of this **repository** to your local disk drive - preferably into your personal folder.\
+*To prevent file and folder access issues, It is highly recommended to use your personal folder to prevent file and folder access issues.*
 - make sure the **main script** (file \<your copy location\>/.py/EasyMountFolders.py) **is marked as exectuable**. If you'r not sure, execute the following command:
 
 ```bash
 chmod +x \<your copy location\>/.py/EasyMountFolders.py
 ```
 - **Update the configuration file** *folders.default.json* to configure *your* drive mappings.\
-See the Configuration section on how to do that.
+See the [Configuration section](#configure-your-mapped-drives) on how to do that.
 - **Run the script once** and see if the script works for you.\
-You will be prompted for UserID('s) and password(s) that need to be used to create the mappings. Also, when the script is run as normal user (no *sudo* is used), you will be prompted for your sudo password.
+You will be prompted for UserID('s) and Password(s) that need to be used to create the mappings. Also, when the script is run as normal user (no *sudo* is used to launch the script), you will be prompted for your sudo password.
 - When satisfied, **configure the script to run at user-login**.\
-See the Configuration section on how to do that.
+See the [Configuration, Startup section](#configure-the-script-to-execute-at-startup) on how to do that.
 
 # Configuration
 
@@ -84,7 +85,24 @@ t.b.d.
 
 ## Configure minimal sudo access to be able to run the script
 
-t.b.d.
+The script contains both mount and umount commands, which need to be executed in normal userspace. These commands require root level priveleges. In order to let these non-priveleged users execute these commands, you will need to update the /etc/sudoers file.
+
+*WARNING: Never edit the /etc/sudoers file with a normal editor; always use the visudo command to update the file to prevent that the file gets corrupted*
+
+*NOTE: In the below (simple) example, one user will be allowed to use the script. If you want, you can use linux group membership, and configure the sudoers settings for that group*
+
+To allow a user to issue the appropriate mount commands, add the folling line to the sudoers file
+
+```text
+<user-name-here> ALL=(ALL) /usr/bin/mount -t cifs *,/usr/bin/umount -t cifs *
+```
+
+With the above line added, the user can execute the script. When the script executes, the user will be prompted for his/her password. If you want to allow the user to execute the script without a sudo password prompt, change the above line to:
+
+```text
+<user-name-here> ALL=(ALL) NOPASSWD:/usr/bin/mount -t cifs *,/usr/bin/umount -t cifs *
+```
+
 
 # Typical script output
 

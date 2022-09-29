@@ -115,7 +115,7 @@ def processfile(file):
 def unmount_all():
     print("INFO: Start the unmount of previously mounted drives")
     mount_result = subprocess.getoutput(
-        "sudo mount | grep 'type cifs'")
+        "mount | grep 'type cifs'")
     if not mount_result:
         print("INFO: No drives found to unmount")
         return "Ok"
@@ -133,7 +133,7 @@ def unmount_all():
         print(f"INFO: Unmounting network share {unc} from mountpoint {mountPoint}")
         try:
             umount_result = subprocess.getoutput(
-                f"sudo umount " + mountPoint)
+                f"sudo umount -t cifs " + mountPoint)
             if umount_result:
                 return "ERROR: Could not unmount network drive from " + mountPoint + "; " + umount_result
         except:
