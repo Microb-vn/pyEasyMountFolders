@@ -5,6 +5,7 @@ import argparse
 import platform
 import subprocess
 import getpass
+import time
 
 def get_arguments():
     # Get Commandline Arguments
@@ -354,16 +355,11 @@ def main():
     
     # print("# #### REMEMBER to clear the history entries where passwords occur #####") - rob: no need, the 'inline' cmds are not captured
 
-    print("INFO: Done!")
+    sleepTime = 5
+    print(f"INFO: Done! This window will close in {sleepTime} seconds")
+    time.sleep(sleepTime)
+    
     return
-   # Testing
-    folder = "/xhome/rob"
-    result = check_folder(folder, "create")
-    print(result)
-    return
-    #End Testing
-
-
 
 if __name__ == '__main__':
     main()
