@@ -17,9 +17,9 @@ When you or your distribution uses another folder to install python, you may nee
 # How to install
 
 - **copy the** contents of this **repository** to your local disk drive - preferably into your personal folder.\
-*To prevent file and folder access issues, It is highly recommended to use your personal folder to prevent file and folder access issues while running this script.*\
-Note that the repository contains some hidden folders. You may need to (temporarely) enable the "view hidden files" option in your file explorer.
-- make sure the **main script** (file \<your copy location\>/.py/EasyMountFolders.py) **is marked as exectuable**. If you'r not sure if this file is currently marked as executable, execute the following command:
+*It is highly recommended to use your personal folder to prevent file and folder access issues while running this script.*\
+Note that the repository contains some hidden folders. You may need to (temporarily) enable the "view hidden files" option in your file explorer.
+- make sure the **main script** (file \<your copy location\>/.py/EasyMountFolders.py) **is marked as executable**. If you'r not sure if this file is currently marked as executable, execute the following command:
 
 ```bash
 chmod +x <your copy location>/.py/EasyMountFolders.py
@@ -28,8 +28,9 @@ chmod +x <your copy location>/.py/EasyMountFolders.py
 See the [Configuration section](#configure-your-mapped-drives) on how to do that.
 - **Run the script once** and see if the script works for you.\
 You will be prompted for UserID('s) and Password(s) that need to be used to create the mappings. Also, when the script is run as normal user (no *sudo* is used to launch the script), you will be prompted for your sudo password (unless you or your administrator used the NOPASSWD option in the /etc/sudoers file).
-- When satisfied, **configure the script to run at user-login**.\
-See the [Configuration, Startup section](#configure-the-script-to-execute-at-startup) on how to do that.
+- When satisfied, **configure the script to run at user-login, or from your Linux Application Menu or a TaskBar shortcut**.\
+*Because the many different distribution of Linux use different methods to configure startup/login programs, no instructions are added in this document. A sample bash command file is available to included in the repository root that can be used to easily trigger the script.*
+
 
 # Configuration
 
@@ -80,10 +81,6 @@ A few notes when using the mappings:
 - When multiple mappings are defined for the same host, one network account is used to execute the mount commands. You need to ensure that you use an account that has sufficient access to all shares on that host.
 - As you can see in the sample configuration file, you can create drive mappings to subfolders in a shared folder (e.g. create a mapping to a shared folder homes/rob, while the host only exposes the homes folder. As result the subfolder homes/rob will be mounted, thus implicitly hiding all the other homes subfolders for you)
 
-## Configure the script to execute at startup
-
-t.b.d.
-
 ## Configure minimal sudo access to be able to run the script
 
 The script contains both mount and umount commands that need to be executed in normal userspace. These commands require root level privileges. In order to let non-privileged users execute these commands, you or your system administrator will need to update the /etc/sudoers file.
@@ -115,26 +112,24 @@ INFO: Checking logged in user
 INFO: Normal user rob found; expect a sudo password login during this script execution!
 INFO: Checking required working directory /home/rob/Documenten/GitHub/EasyMountFolders/.cache
 INFO: Working directory is available
-INFO: Based on trigger command used, the script assumes that -RefreshCredentials No and -MappingsFile folders.default.json is to be used.
+INFO: Based on trigger command used, the script assumes that -MappingsFile folders.default.json is to be used.
 INFO: Start the unmount of previously mounted drives
-[sudo] wachtwoord voor rob:            
-INFO: Unmounting network share //192.168.123.253/video from mountpoint /home/rob/nassie/video
-INFO: Unmounting network share //192.168.123.253/homes/rob from mountpoint /home/rob/nassie/rob
-INFO: Unmounting network share //192.168.123.253/audio from mountpoint /home/rob/nassie/audio
+INFO: No drives found to unmount
 INFO: Checking the contents of /home/rob/Documenten/GitHub/EasyMountFolders/folders.default.json
 INFO: No anomalies found in /home/rob/Documenten/GitHub/EasyMountFolders/folders.default.json
 INFO: Start creating the drive mappings
 INFO: Checking host 192.168.123.253
 INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder video
 INFO: Attemtping to map remote folder to ~/nassie/video
+[sudo] wachtwoord voor rob:            
 INFO: mapping action executed, network folder is now available in ~/nassie/video
 INFO: Checking host 192.168.123.253
 INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder homes/rob
 INFO: Attemtping to map remote folder to ~/nassie/rob
 INFO: mapping action executed, network folder is now available in ~/nassie/rob
 INFO: Checking host 192.168.123.253
-INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder audio
-INFO: Attemtping to map remote folder to ~/nassie/audio
-INFO: mapping action executed, network folder is now available in ~/nassie/audio
-INFO: Done!
+INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder Download
+INFO: Attemtping to map remote folder to ~/nassie/download
+INFO: mapping action executed, network folder is now available in ~/nassie/download
+INFO: Done! This window will close in 5 seconds
 ```

@@ -10,13 +10,11 @@ import time
 def get_arguments():
     # Get Commandline Arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-RefreshCredentials')
     parser.add_argument('-MappingsFile')
     args=parser.parse_args()
 
-    # print(args.RefreshCredentials)
     # print(args.MappingsFile)
-    return args.RefreshCredentials, args.MappingsFile
+    return args.MappingsFile
 
 def check_folder(folder, action):
     # See if folder exists, is empty and is writeable and/or can be created
@@ -147,7 +145,7 @@ def getcredentials(scriptCacheFolder, user, remoteHost):
     """
     Password files are in the cache folder and are named currentUserID.host.file, where:
         currentUserID is the currently logged in user
-        host is the host the login onfo can be used for
+        host is the host the login info can be used for
     The files' content is 
         userid
         password
@@ -228,7 +226,7 @@ def main():
     # =========================
     # GET COMMANDLINE ARGUMENTS and set important literals
     # =========================
-    refresh, file = get_arguments()
+    file = get_arguments()
 
     scriptFolder = os.path.realpath(os.path.dirname(__file__))
     scriptSettingsFolder = scriptFolder.replace("/.py","")
@@ -243,17 +241,10 @@ def main():
     print("INFO: Working directory is available")
 
     # Set default parameters (if required)
-    if not refresh:
-        refresh = 'No'
     if not file:
         file = 'folders.default.json'
 
-    # Validate the refresh parameter
-    urefresh = refresh.upper()
-    if not urefresh in ['YES', 'NO']:
-        raise Exception('ERROR:Invalid RefreshCredentials parameter value found -' + refresh + '-; Should be either -Yes- or -No-.') 
-    
-    print("INFO: Based on trigger command used, the script assumes that -RefreshCredentials " + refresh + " and -MappingsFile " + file + " is to be used.")
+    print("INFO: Based on trigger command used, the script assumes that -MappingsFile " + file + " is to be used.")
 
     # #######################
     # UNMOUNT ALL CIFS DRIVES
