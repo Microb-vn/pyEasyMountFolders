@@ -19,11 +19,12 @@ When you or your distribution uses another folder to install python, you may nee
 - **copy the** contents of this **repository** to your local disk drive - preferably into your personal folder.\
 *It is highly recommended to use your personal folder to prevent file and folder access issues while running this script.*\
 Note that the repository contains some hidden folders. You may need to (temporarily) enable the "view hidden files" option in your file explorer.
-- make sure the **main script** (file \<your copy location\>/.py/EasyMountFolders.py) **is marked as executable**. If you'r not sure if this file is currently marked as executable, execute the following command:
+- make sure the **main script** (file \<your copy location\>/.py/EasyMountFolders.py) **is marked as executable**. If you'r not sure if this file is currently marked as executable, execute the following command in a terminal session:
 
 ```bash
 chmod +x <your copy location>/.py/EasyMountFolders.py
 ```
+
 - **Update the configuration file** *folders.default.json* in  \<your copy location\> to configure *your* drive mappings.\
 See the [Configuration section](#configure-your-mapped-drives) on how to do that.
 - **Run the script once** and see if the script works for you.\
