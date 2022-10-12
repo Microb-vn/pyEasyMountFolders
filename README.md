@@ -1,5 +1,5 @@
 # EasyMountFolders
-Linux/Python script to automatically attempts to mount SMB/CIFS shared folders when you are connected to a network.
+Linux/Python script that automatically attempts to mount SMB/CIFS shared folders when you are connected to a network.
 
 *Disclaimer: the script stores login credentials that allow access to the shared folders on the computers' local file system, with the security set so that only the user can access the stored credentials. Mind you that anyone with root access (sudo) can change the file's security attributes and with that can get access to the stored credentials! If you find this to big a risc, do not use this script!*
 
