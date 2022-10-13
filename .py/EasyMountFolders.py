@@ -262,7 +262,7 @@ def main():
     
     if disconnectOnly:
         sleepTime = 5
-        print("INFO: Disconnect only was requested. Done!  This window will close in {sleepTime} seconds")
+        print(f"INFO: Disconnect only was requested. Done!  This window will close in {sleepTime} seconds")
         time.sleep(sleepTime)
         return
 
