@@ -11,10 +11,11 @@ def get_arguments():
     # Get Commandline Arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-MappingsFile')
+    parser.add_argument('-DisconnectOnly',choices=('True','False'))
     args=parser.parse_args()
 
     # print(args.MappingsFile)
-    return args.MappingsFile
+    return args.MappingsFile, args.DisconnectOnly
 
 def check_folder(folder, action):
     # See if folder exists, is empty and is writeable and/or can be created
@@ -226,7 +227,7 @@ def main():
     # =========================
     # GET COMMANDLINE ARGUMENTS and set important literals
     # =========================
-    file = get_arguments()
+    file, disconnectOnly = get_arguments()
 
     scriptFolder = os.path.realpath(os.path.dirname(__file__))
     scriptSettingsFolder = scriptFolder.replace("/.py","")
@@ -243,8 +244,14 @@ def main():
     # Set default parameters (if required)
     if not file:
         file = 'folders.default.json'
+    if not disconnectOnly:
+        disconnectOnly = False
+    elif disconnectOnly.upper() == 'TRUE':
+        disconnectOnly = True
+    else:
+        disconnectOnly = False
 
-    print("INFO: Based on trigger command used, the script assumes that -MappingsFile " + file + " is to be used.")
+    print("INFO: Based on trigger command used, the script assumes that -MappingsFile " + file + " and -DisconnectOnly " + str(disconnectOnly) + " is to be used.")
 
     # #######################
     # UNMOUNT ALL CIFS DRIVES
@@ -252,6 +259,12 @@ def main():
     result = unmount_all()
     if result != 'Ok':
         raise Exception(result)
+    
+    if disconnectOnly:
+        sleepTime = 5
+        print("INFO: Disconnect only was requested. Done!  This window will close in {sleepTime} seconds")
+        time.sleep(sleepTime)
+        return
 
     # #################
     # READ SETTINGSFILE and check its content

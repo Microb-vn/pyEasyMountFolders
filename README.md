@@ -82,6 +82,16 @@ A few notes when using the mappings:
 - When multiple mappings are defined for the same host, one network account is used to execute the mount commands. You need to ensure that you use an account that has sufficient access to all shares on that host.
 - As you can see in the sample configuration file, you can create drive mappings to subfolders in a shared folder (e.g. create a mapping to a shared folder homes/rob, while the host only exposes the homes folder. As result the subfolder homes/rob will be mounted, thus implicitly hiding all the other homes subfolders for you)
 
+## Command line parameters
+
+Two command line parameters are allowed:
+
+- **-MappingsFile**: name of an alternate configuration file.\
+Specifiy an alternative mappingsfile that must be used. This allows you to work with different drive mappings in the same network, for example, you can have a "default" mappingsfile for your personal shared folders, and one mappingfile for when you are working your job for your work shared folders. To make it easier for yourself, and allow easy switching between the two, you can create different shell file to launch the two different options.
+- -**DisconnectOnly**: Perform a disconnect of mapped CIFS folders only. Takes the values True or False.
+Whenever you specify -DisconnectOnly True, only a disconnect will be executed.
+
+
 ## Configure minimal sudo access to be able to run the script
 
 The script contains both mount and umount commands that need to be executed in normal userspace. These commands require root level privileges. In order to let non-privileged users execute these commands, you or your system administrator will need to update the /etc/sudoers file.
