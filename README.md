@@ -144,3 +144,8 @@ INFO: Attemtping to map remote folder to ~/nassie/download
 INFO: mapping action executed, network folder is now available in ~/nassie/download
 INFO: Done! This window will close in 5 seconds
 ```
+
+# Appendix A: Planned changes/improvements
+
+- **Better error messaging**\
+At this moment, the script sometimes raises an exception. This causes the shell window to instantly close, and the end user cannot see what went wrong. This needs to be changed.
