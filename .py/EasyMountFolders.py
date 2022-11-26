@@ -71,7 +71,7 @@ def processfile(file):
             action = 'extract the mappings from json settings file ' + file + '; the object -Mappings- is not found in the file.'
             mappings = fileContent["Mappings"]
     except:
-        return 'ERROR: Error occured while attemtping to ' + action
+        return 'ERROR: Error occured while Attempting to ' + action
 
     if len(mappings) == 0:
         return 'ERROR: Did not find any items in the json mappings object in file ' + file + ';please check'
@@ -198,6 +198,12 @@ def detect_host(host):
     else:
         return False
 
+def CleanExit(sleepTime):
+    #    sleepTime = 5
+    print(f"INFO: Done! This window will close in {sleepTime} seconds")
+    time.sleep(sleepTime)
+    
+    os._exit(0)
 
 def main():
     # ===============
@@ -205,7 +211,8 @@ def main():
     # ===============
     currentPlatform = platform.system()
     if currentPlatform != 'Linux':
-        raise Exception('ERROR:Platform is not supported.')
+        print('ERROR:Platform is not supported. Stopping!!!')
+        CleanExit(10)
     
     print("INFO: Script " + os.path.basename(__file__) + " is triggered, Starting its execution now...")
     print("INFO: Checking logged in user")
@@ -218,7 +225,9 @@ def main():
         user = os.getenv("USER")
         print("INFO: Normal user " + user + " found;\033[1;32m expect a sudo password login during this script execution!\033[1;0m")
     elif user is None:
-        raise Exception('ERROR:Current user is None.')
+        print('ERROR:Current user is None. Stopping!!')
+        CleanExit(10)
+
     else:
         print("INFO: Super user " + user + " found.")
     uid = os.getuid()
@@ -238,7 +247,9 @@ def main():
         try:
             os.mkdir(scriptCacheFolder, mode=0o774)
         except:
-            raise Exception("ERROR: Cannot create a required working directory " + scriptCacheFolder + ". Please fix the issue and try again.")
+            print("ERROR: Cannot create a required working directory " + scriptCacheFolder + ". Please fix the issue and try again.")
+            CleanExit(10)
+
     print("INFO: Working directory is available")
 
     # Set default parameters (if required)
@@ -258,11 +269,14 @@ def main():
     # #######################
     result = unmount_all()
     if result != 'Ok':
-        raise Exception(result)
+        print(result)
+        CleanExit(10)
+
     
     if disconnectOnly:
-        sleepTime = 5
-        print(f"INFO: Disconnect only was requested. Done!  This window will close in {sleepTime} seconds")
+        print("INFO: Disconnect only was requested. Done!")
+        CleanExit(5)
+
         time.sleep(sleepTime)
         return
 
@@ -274,8 +288,8 @@ def main():
     print("INFO: Checking the contents of " + file)
     mappings = processfile(file)
     if type(mappings) is str:
-        raise Exception(mappings)
-        return
+        print(mappings)
+        CleanExit(10)
     print("INFO: No anomalies found in " + file)
     
     # mappings now contains a list with items with fields:
@@ -301,24 +315,28 @@ def main():
             print(f"INFO: Found; getting the credentials for host {mapping['RemoteHost']} to create mapping to remote folder {mapping['RemoteFolder']}")
             credentials = getcredentials(scriptCacheFolder, user, mapping['RemoteHost'])
             if type(credentials) is str:
-                raise Exception(credentials)
+                print(credentials)
+                CleanExit(10)
+
 
             # Check if target folder exists (again); but now create it if required
             result = check_folder(mapping['LocalFolder'], 'Create')
             if result != 'Ok':
-                raise Exception(result)
-            
+                print(result)
+                CleanExit(10)
+
             # Set question variable to default value
             question = "X"
             # Issue command to create the mapping
             while True:
                 # Mount loop
                 try:
-                    print(f"INFO: Attemtping to map remote folder to {mapping['LocalFolder']}")
+                    print(f"INFO: Attempting to map remote folder to {mapping['LocalFolder']}")
                     mount_result = subprocess.getoutput(
                         f"sudo mount -t cifs -o username={credentials[0]},password={credentials[1]},uid={uid},gid={gid} //{mapping['RemoteHost']}/{mapping['RemoteFolder']} {mapping['LocalFolder']} ")
                 except:
-                    raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; reason unknown... ")
+                    print(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; reason unknown... ")
+                    CleanExit(10)
 
                 if mount_result.find("mount error") != -1:
                     if mount_result.find('Permission denied') != -1:
@@ -350,20 +368,18 @@ def main():
                         else:
                             break # get out of the mount loop
 
-                    raise Exception(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
+                    print(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
+                    CleanExit(10)
+
                 print(f"INFO: mapping action executed, network folder is now available in {mapping['LocalFolder']}")
                 break # Break out of mount loop
             if question.upper() == "C":
                 continue # the credentials loop
-            break # Break out the credentails loop
+            break # Break out the credentials loop
     
     # print("# #### REMEMBER to clear the history entries where passwords occur #####") - rob: no need, the 'inline' cmds are not captured
 
-    sleepTime = 5
-    print(f"INFO: Done! This window will close in {sleepTime} seconds")
-    time.sleep(sleepTime)
-    
-    return
+    CleanExit(5)
 
 if __name__ == '__main__':
     main()

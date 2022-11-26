@@ -136,16 +136,15 @@ INFO: Attemtping to map remote folder to ~/nassie/video
 INFO: mapping action executed, network folder is now available in ~/nassie/video
 INFO: Checking host 192.168.123.253
 INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder homes/rob
-INFO: Attemtping to map remote folder to ~/nassie/rob
+INFO: Attempting to map remote folder to ~/nassie/rob
 INFO: mapping action executed, network folder is now available in ~/nassie/rob
 INFO: Checking host 192.168.123.253
 INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder Download
-INFO: Attemtping to map remote folder to ~/nassie/download
+INFO: Attempting to map remote folder to ~/nassie/download
 INFO: mapping action executed, network folder is now available in ~/nassie/download
 INFO: Done! This window will close in 5 seconds
 ```
 
 # Appendix A: Planned changes/improvements
 
-- **Better error messaging**\
-At this moment, the script sometimes raises an exception. This causes the shell window to instantly close, and the end user cannot see what went wrong. This needs to be changed.
+- None
