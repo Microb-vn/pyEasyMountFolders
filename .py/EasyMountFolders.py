@@ -198,6 +198,10 @@ def detect_host(host):
     else:
         return False
 
+def printError(msg):
+    # Print error message in RED
+    print("\033[91m{}\033[00m" .format(msg))
+
 def CleanExit(sleepTime):
     #    sleepTime = 5
     print(f"INFO: Done! This window will close in {sleepTime} seconds")
@@ -211,7 +215,7 @@ def main():
     # ===============
     currentPlatform = platform.system()
     if currentPlatform != 'Linux':
-        print('ERROR:Platform is not supported. Stopping!!!')
+        printError('ERROR:Platform is not supported. Stopping!!!')
         CleanExit(10)
     
     print("INFO: Script " + os.path.basename(__file__) + " is triggered, Starting its execution now...")
@@ -225,7 +229,7 @@ def main():
         user = os.getenv("USER")
         print("INFO: Normal user " + user + " found;\033[1;32m expect a sudo password login during this script execution!\033[1;0m")
     elif user is None:
-        print('ERROR:Current user is None. Stopping!!')
+        printError('ERROR:Current user is None. Stopping!!')
         CleanExit(10)
 
     else:
@@ -247,7 +251,7 @@ def main():
         try:
             os.mkdir(scriptCacheFolder, mode=0o774)
         except:
-            print("ERROR: Cannot create a required working directory " + scriptCacheFolder + ". Please fix the issue and try again.")
+            printError("ERROR: Cannot create a required working directory " + scriptCacheFolder + ". Please fix the issue and try again.")
             CleanExit(10)
 
     print("INFO: Working directory is available")
@@ -269,7 +273,7 @@ def main():
     # #######################
     result = unmount_all()
     if result != 'Ok':
-        print(result)
+        printError(result)
         CleanExit(10)
 
     
@@ -315,14 +319,14 @@ def main():
             print(f"INFO: Found; getting the credentials for host {mapping['RemoteHost']} to create mapping to remote folder {mapping['RemoteFolder']}")
             credentials = getcredentials(scriptCacheFolder, user, mapping['RemoteHost'])
             if type(credentials) is str:
-                print(credentials)
+                printError(credentials)
                 CleanExit(10)
 
 
             # Check if target folder exists (again); but now create it if required
             result = check_folder(mapping['LocalFolder'], 'Create')
             if result != 'Ok':
-                print(result)
+                printError(result)
                 CleanExit(10)
 
             # Set question variable to default value
@@ -335,7 +339,7 @@ def main():
                     mount_result = subprocess.getoutput(
                         f"sudo mount -t cifs -o username={credentials[0]},password={credentials[1]},uid={uid},gid={gid} //{mapping['RemoteHost']}/{mapping['RemoteFolder']} {mapping['LocalFolder']} ")
                 except:
-                    print(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; reason unknown... ")
+                    printError(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; reason unknown... ")
                     CleanExit(10)
 
                 if mount_result.find("mount error") != -1:
@@ -360,7 +364,7 @@ def main():
                                 os.remove(fileName)
                                 break # Get out of the question loop
                             else:
-                                print("ERROR: Invalid input!")
+                                printError("ERROR: Invalid input!")
                                 continue # do the question loop again
                             break # the question loop
                         if question.upper() == "R":
@@ -368,7 +372,7 @@ def main():
                         else:
                             break # get out of the mount loop
 
-                    print(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
+                    printError(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; {mount_result}".replace('\n', '!'))
                     CleanExit(10)
 
                 print(f"INFO: mapping action executed, network folder is now available in {mapping['LocalFolder']}")
