@@ -15,5 +15,6 @@
             "RemoteHost": "192.168.123.253",
             "RemoteFolder": "Download"
         }
-    ]
+    ],
+    "StartCommand": "/usr/bin/nemo /home/rob/nassie"   
 }

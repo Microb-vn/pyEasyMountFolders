@@ -1,7 +1,7 @@
 # EasyMountFolders
-Linux/Python script that automatically attempts to mount SMB/CIFS shared folders when you are connected to a network.
+Linux/Python script to automatically mount SMB/CIFS shared folders when connected to specific network
 
-*WARNING: the script stores login credentials that allow access to the shared folders on the computers' local file system, with the security set so that only the user can access the stored credentials. Mind you that anyone with root access (sudo) can change the file's security attributes and with that can get access to the stored credentials! If you find this to big a risc, do not use this script!*
+*Disclaimer: the script stores login credentails in the user's personal folders, with the securiy set so that only the user can access the stored credentials. Mind you that anyone with root access (sudo) can change the file's securiy attributes and with that can get access to the stored credentials! If you find this to big a risc, do not use the script!*
 
 
 # Prerequisites
@@ -17,27 +17,24 @@ When you or your distribution uses another folder to install python, you may nee
 # How to install
 
 - **copy the** contents of this **repository** to your local disk drive - preferably into your personal folder.\
-*It is highly recommended to use your personal folder to prevent file and folder access issues while running this script.*\
-Note that the repository contains some hidden folders. You may need to (temporarily) enable the "view hidden files" option in your file explorer.
-- make sure the **main script** (file \<your copy location\>/.py/EasyMountFolders.py) **is marked as executable**. If you'r not sure if this file is currently marked as executable, execute the following command in a terminal session:
+*To prevent file and folder access issues, It is highly recommended to use your personal folder to prevent file and folder access issues.*
+- make sure the **main script** (file \<your copy location\>/.py/EasyMountFolders.py) **is marked as exectuable**. If you'r not sure, execute the following command:
 
 ```bash
-chmod +x <your copy location>/.py/EasyMountFolders.py
+chmod +x \<your copy location\>/.py/EasyMountFolders.py
 ```
-
-- **Update the configuration file** *folders.default.json* in  \<your copy location\> to configure *your* drive mappings.\
+- **Update the configuration file** *folders.default.json* to configure *your* drive mappings.\
 See the [Configuration section](#configure-your-mapped-drives) on how to do that.
 - **Run the script once** and see if the script works for you.\
-You will be prompted for UserID('s) and Password(s) that need to be used to create the mappings. Also, when the script is run as normal user (no *sudo* is used to launch the script), you will be prompted for your sudo password (unless you or your administrator used the NOPASSWD option in the /etc/sudoers file).
-- When satisfied, **configure the script to run at user-login, or from your Linux Application Menu or a TaskBar shortcut**.\
-*Because the many different distribution of Linux use different methods to configure startup/login programs, no instructions are added in this document. A sample bash command file is available to included in the repository root that can be used to easily trigger the script.*
-
+You will be prompted for UserID('s) and Password(s) that need to be used to create the mappings. Also, when the script is run as normal user (no *sudo* is used to launch the script), you will be prompted for your sudo password.
+- When satisfied, **configure the script to run at user-login**.\
+See the [Configuration, Startup section](#configure-the-script-to-execute-at-startup) on how to do that.
 
 # Configuration
 
 ## Configure your mapped drives
 
-The repository contains a sample configuration file, which has the following format:
+The repositoy contains a sample configuration file, which has the following format:
 
 ```json
 {
@@ -57,50 +54,50 @@ The repository contains a sample configuration file, which has the following for
             "RemoteHost": "192.168.123.253",
             "RemoteFolder": "audio"
         }
-    ]
+    ],
+    "StartCommand": "nemo ~/nassie"
+
 }
 ```
 
-As displayed above, the json file contains an array of drives-to-be-mapped. Each array element contains the following attributes:
+As displayed above, the json file contains an array of drives-to-be-mapped and the name of an (optional) StartCommand.
 
-- **LocalFolder**. The folder on your machine where the network drive should be mapped to. This can be either a full path (e.g. /mnt/MyHost/videos), a relative path (e.g. MyHost/videos) or a personal homefolder path (e.g. ~/Myhost/videos).\
+Each **Mapping** array element contains the following attributes:
+
+- **LocalFolder**. The folder on your machine where the network drive should be mapped to. This can be either a full path (e.g. /mnt/MyHost/videos), a relative path (e.g. MyHost/videos) or a personal home path (e.g. ~/Myhost/videos).\
 The relative path will point to a folder that is in the current directory - the directory that has focus the moment the script is triggered -.\
-The personal homefolder path will point to a folder in your local "home" folder (aka the "Personal Folder" in most Linux GUI's).\
-*It is highly recommended to always use a 'personal homefolder path'*.\
+The personal home path will point to a folder in your local "home" folder (aka the "Personal Folder" in most Linux GUI's).\
+*It is highly recommended to always use a 'personal home path'*.\
 \
-Note that this folder does not have to exist before you trigger the script. The only requirement is that you (that is, your local linux account) should be able to create it at the indicated location.\
+Note that this folder does not have to exist before you trigger the script. The only requirement is that you (the is, your local linux account) should be able to create it.\
 \
-Also, the folder - when it exists - should be empty.
+Also, the folder - when it exists - should be empty.\
 
 - **RemoteHost**. The IP address, hostname of (UNC) name of the host that publishes the shared folder. When a name is used, it must be resolvable to an address in your network, either by DNS or WINS.\
-Before a mapping attempt is made, an attempts is done to discover the host on the network. When no host responds to the query made by the script, the mapping attempt is skipped.\
-This allows you to ALWAYS execute your script at logon, and configure different hosts for different networks you connect to. The host detection will decide for you which mappings are be made and which are skipped.)
-- **RemoteFolder**. The name of the shared CIFS/SMB (or Windows) shared folder on the host.
+Before a mapping attempt is made, an attempts is done to discover the host on the network. When no hosts respond to the query made by the script, the mapping attempt is skipped.\
+(This allows you to ALWAYS execute your script at logon, and configure different hosts for different networks you connect to. Ths host detection will decide for you which mappings should be made.)
+- **RemoteFolder**. The name of the shared cifs (or Windows) shared folder on the host.
+
+The optional **StartCommand** contains a command to be executed after the drive mappings are all executed. It givesyou an option to open your favorite explorer, pointing to the folder that holds one or more of your mapped network drives.
 
 A few notes when using the mappings:
 
-- When multiple mappings are defined for the same host, one network account is used to execute the mount commands. You need to ensure that you use an account that has sufficient access to all shares on that host.
-- As you can see in the sample configuration file, you can create drive mappings to subfolders in a shared folder (e.g. create a mapping to a shared folder homes/rob, while the host only exposes the homes folder. As result the subfolder homes/rob will be mounted, thus implicitly hiding all the other homes subfolders for you)
+- When multiple mappings are defined for the same host, one network account is used to create the mounts. You need to ensure that you use an account that has sufficient access to all shares on that host.
+- As you can see in the sample configuration file, you can create drive mappings to submaps in a shared folder (e.g. create a mapping to a shared folder homes/rob, while the host only exposes the homes folder. As result the subfolder homes/rob will be mounted, thus implicitelly hiding all the other homes subfolders for you)
 
-## Command line parameters
+## Configure the script to execute at startup
 
-Two command line parameters are allowed:
-
-- **-MappingsFile**: name of an alternate configuration file.\
-Specifiy an alternative mappingsfile that must be used. This allows you to work with different drive mappings in the same network, for example, you can have a "default" mappingsfile for your personal shared folders, and one mappingfile for when you are working your job for your work shared folders. To make it easier for yourself, and allow easy switching between the two, you can create different shell file to launch the two different options.
-- -**DisconnectOnly**: Perform a disconnect of mapped CIFS folders only. Takes the values True or False.
-Whenever you specify -DisconnectOnly True, only a disconnect will be executed.
-
+t.b.d.
 
 ## Configure minimal sudo access to be able to run the script
 
-The script contains both mount and umount commands that need to be executed in normal userspace. These commands require root level privileges. In order to let non-privileged users execute these commands, you or your system administrator will need to update the /etc/sudoers file.
+The script contains both mount and umount commands, which need to be executed in normal userspace. These commands require root level priveleges. In order to let these non-priveleged users execute these commands, you will need to update the /etc/sudoers file.
 
 *WARNING: Never edit the /etc/sudoers file with a normal editor; always use the visudo command to update the file to prevent that the file gets corrupted*
 
-*NOTE: In the below (simple) example, one user will be allowed to use the script. If you want, you can use linux group membership(s) to allow specific users - members of that group - to allow running the sudo commands, and configure the sudoers settings for that group*
+*NOTE: In the below (simple) example, one user will be allowed to use the script. If you want, you can use linux group membership, and configure the sudoers settings for that group*
 
-To allow *a single user* to issue the appropriate mount commands, add the folling line to the sudoers file
+To allow a user to issue the appropriate mount commands, add the folling line to the sudoers file
 
 ```text
 <user-name-here> ALL=(ALL) /usr/bin/mount -t cifs *,/usr/bin/umount -t cifs *
@@ -123,28 +120,27 @@ INFO: Checking logged in user
 INFO: Normal user rob found; expect a sudo password login during this script execution!
 INFO: Checking required working directory /home/rob/Documenten/GitHub/EasyMountFolders/.cache
 INFO: Working directory is available
-INFO: Based on trigger command used, the script assumes that -MappingsFile folders.default.json is to be used.
+INFO: Based on trigger command used, the script assumes that -RefreshCredentials No and -MappingsFile folders.default.json is to be used.
 INFO: Start the unmount of previously mounted drives
-INFO: No drives found to unmount
+[sudo] wachtwoord voor rob:            
+INFO: Unmounting network share //192.168.123.253/video from mountpoint /home/rob/nassie/video
+INFO: Unmounting network share //192.168.123.253/homes/rob from mountpoint /home/rob/nassie/rob
+INFO: Unmounting network share //192.168.123.253/audio from mountpoint /home/rob/nassie/audio
 INFO: Checking the contents of /home/rob/Documenten/GitHub/EasyMountFolders/folders.default.json
 INFO: No anomalies found in /home/rob/Documenten/GitHub/EasyMountFolders/folders.default.json
 INFO: Start creating the drive mappings
 INFO: Checking host 192.168.123.253
 INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder video
 INFO: Attemtping to map remote folder to ~/nassie/video
-[sudo] wachtwoord voor rob:            
 INFO: mapping action executed, network folder is now available in ~/nassie/video
 INFO: Checking host 192.168.123.253
 INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder homes/rob
-INFO: Attempting to map remote folder to ~/nassie/rob
+INFO: Attemtping to map remote folder to ~/nassie/rob
 INFO: mapping action executed, network folder is now available in ~/nassie/rob
 INFO: Checking host 192.168.123.253
-INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder Download
-INFO: Attempting to map remote folder to ~/nassie/download
-INFO: mapping action executed, network folder is now available in ~/nassie/download
-INFO: Done! This window will close in 5 seconds
+INFO: Found; getting the credentials for host 192.168.123.253 to create mapping to remote folder audio
+INFO: Attemtping to map remote folder to ~/nassie/audio
+INFO: mapping action executed, network folder is now available in ~/nassie/audio
+# #### REMEMBER to clear the history entries where passwords occur #####
+INFO: Done!
 ```
-
-# Appendix A: Planned changes/improvements
-
-- None
