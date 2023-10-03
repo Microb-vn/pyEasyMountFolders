@@ -70,6 +70,7 @@ def processfile(file):
             fileContent = json.load(infile)
             action = 'extract the mappings from json settings file ' + file + '; the object -Mappings- is not found in the file.'
             mappings = fileContent["Mappings"]
+            startCommand = fileContent["StartCommand"]
     except:
         return 'ERROR: Error occured while Attempting to ' + action
 
@@ -110,7 +111,9 @@ def processfile(file):
         if not work:
             return "Error: while making an " + actionRemoteFolder + "; parameter is empty"
     
-    return mappings
+
+
+    return mappings, startCommand
 
 def unmount_all():
     print("INFO: Start the unmount of previously mounted drives")
@@ -290,7 +293,7 @@ def main():
     file = scriptSettingsFolder + "/" + file
     # Read the file and check its contents
     print("INFO: Checking the contents of " + file)
-    mappings = processfile(file)
+    mappings, startCommand = processfile(file)
     if type(mappings) is str:
         print(mappings)
         CleanExit(10)
@@ -300,6 +303,7 @@ def main():
     # - LocalFolder
     # - RemoteHost
     # - RemoteFolder
+    # startCommand contains an (optional) start command
     
     # ###########################
     # Try to execute the mappings
@@ -382,6 +386,14 @@ def main():
             break # Break out the credentials loop
     
     # print("# #### REMEMBER to clear the history entries where passwords occur #####") - rob: no need, the 'inline' cmds are not captured
+    if startCommand != "":
+        startCmd = startCommand.split(" ")
+        try:
+            subprocess.run(startCmd)
+        except:
+            printError(f"ERROR: Could not execute the startCommand; {startCommand}; please review your json config file!")
+            CleanExit(10)
+
 
     CleanExit(5)
 
