@@ -55,8 +55,7 @@ The repositoy contains a sample configuration file, which has the following form
             "RemoteFolder": "audio"
         }
     ],
-    "StartCommand": "nemo ~/nassie"
-
+    "StartCommand": "/usr/bin/nemo /home/rob/nassie"
 }
 ```
 
@@ -78,7 +77,7 @@ Before a mapping attempt is made, an attempts is done to discover the host on th
 (This allows you to ALWAYS execute your script at logon, and configure different hosts for different networks you connect to. Ths host detection will decide for you which mappings should be made.)
 - **RemoteFolder**. The name of the shared cifs (or Windows) shared folder on the host.
 
-The optional **StartCommand** contains a command to be executed after the drive mappings are all executed. It givesyou an option to open your favorite explorer, pointing to the folder that holds one or more of your mapped network drives.
+The optional **StartCommand** contains a command to be executed after the drive mappings are all executed. It gives you an option to open your favorite explorer, pointing to the folder that holds one or more of your mapped network drives. Note that you need to speciify *full paths* where needed for both the command and the arguments.
 
 A few notes when using the mappings:
 
