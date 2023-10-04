@@ -7,6 +7,8 @@ import subprocess
 import getpass
 import time
 
+DETACHED_PROCESS = 0x00000008
+
 def get_arguments():
     # Get Commandline Arguments
     parser = argparse.ArgumentParser()
@@ -387,12 +389,12 @@ def main():
     
     # print("# #### REMEMBER to clear the history entries where passwords occur #####") - rob: no need, the 'inline' cmds are not captured
     if startCommand != "":
-        startCmd = startCommand.split(" ")
-        try:
-            subprocess.run(startCmd)
-        except:
-            printError(f"ERROR: Could not execute the startCommand; {startCommand}; please review your json config file!")
-            CleanExit(10)
+       startCmd = startCommand.split(" ")
+       try:
+           subprocess.Popen(startCmd, shell=False, stdin=None, stdout=None,stderr=None, close_fds=True)
+       except:
+           printError(f"ERROR: Could not execute the startCommand; {startCommand}; please review your json config file!")
+           CleanExit(10)
 
 
     CleanExit(5)
