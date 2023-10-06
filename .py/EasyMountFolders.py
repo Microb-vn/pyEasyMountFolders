@@ -3,7 +3,7 @@ import os
 import json
 import argparse
 import platform
-import subprocess
+from subprocess import Popen, PIPE, getoutput
 import getpass
 import time
 
@@ -74,10 +74,10 @@ def processfile(file):
             mappings = fileContent["Mappings"]
             startCommand = fileContent["StartCommand"]
     except:
-        return 'ERROR: Error occured while Attempting to ' + action
+        return 'ERROR: Error occured while Attempting to ' + action, ""
 
     if len(mappings) == 0:
-        return 'ERROR: Did not find any items in the json mappings object in file ' + file + ';please check'
+        return 'ERROR: Did not find any items in the json mappings object in file ' + file + ';please check', ""
 
     itemcount = 0
     for mapping in mappings:
@@ -88,38 +88,37 @@ def processfile(file):
         try:
             work = mapping["LocalFolder"]
         except:
-            return "Error: while making an " + actionLocalFolder + "; parameter not found"
+            return "Error: while making an " + actionLocalFolder + "; parameter not found", ""
         if not work:
-            return "Error: while making an " + actionLocalFolder + "; parameter is empty"
+            return "Error: while making an " + actionLocalFolder + "; parameter is empty", ""
         
         # Does the local folder exist, and is it writable and empty (or can it be created if it doesnt exist yet)?
         result = check_folder(work, 'Verify')
         if not result == "Ok":
-            return "Error: while making an " + actionLocalFolder + "; folder does not exist, is not empty or is not writeable"
+            return "Error: while making an " + actionLocalFolder + "; folder does not exist, is not empty or is not writeable", ""
 
         actionRemoteHost = action + '; checking RemoteHost parameter'
         try:
             work = mapping["RemoteHost"]
         except:
-            return "Error: while making an " + actionRemoteHost + "; parameter not found"
+            return "Error: while making an " + actionRemoteHost + "; parameter not found", ""
         if not work:
-            return "Error: while making an " + actionRemoteHost + "; parameter is empty"
+            return "Error: while making an " + actionRemoteHost + "; parameter is empty", ""
 
         actionRemoteFolder = action + '; checking RemoteFolder parameter'
         try:
             work = mapping["RemoteFolder"]
         except:
-            return "Error: while making an " + actionRemoteFolder + "; parameter not found"
+            return "Error: while making an " + actionRemoteFolder + "; parameter not found", ""
         if not work:
-            return "Error: while making an " + actionRemoteFolder + "; parameter is empty"
+            return "Error: while making an " + actionRemoteFolder + "; parameter is empty", ""
     
-
 
     return mappings, startCommand
 
 def unmount_all():
     print("INFO: Start the unmount of previously mounted drives")
-    mount_result = subprocess.getoutput(
+    mount_result = getoutput(
         "mount | grep 'type cifs'")
     if not mount_result:
         print("INFO: No drives found to unmount")
@@ -391,7 +390,8 @@ def main():
     if startCommand != "":
        startCmd = startCommand.split(" ")
        try:
-           subprocess.Popen(startCmd, shell=False, stdin=None, stdout=None,stderr=None, close_fds=True)
+           newCmd = Popen(startCmd, shell=False, stdin=PIPE, stdout=PIPE,stderr=PIPE, start_new_session=True)
+           assert not newCmd.poll
        except:
            printError(f"ERROR: Could not execute the startCommand; {startCommand}; please review your json config file!")
            CleanExit(10)
