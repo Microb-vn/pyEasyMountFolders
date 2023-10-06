@@ -3,7 +3,7 @@ import os
 import json
 import argparse
 import platform
-from subprocess import Popen, PIPE, getoutput
+from subprocess import Popen, PIPE, getoutput, call
 import getpass
 import time
 
@@ -136,7 +136,7 @@ def unmount_all():
 
         print(f"INFO: Unmounting network share {unc} from mountpoint {mountPoint}")
         try:
-            umount_result = subprocess.getoutput(
+            umount_result = getoutput(
                 f"sudo umount -t cifs " + mountPoint)
             if umount_result:
                 return "ERROR: Could not unmount network drive from " + mountPoint + "; " + umount_result
@@ -166,7 +166,7 @@ def getcredentials(scriptCacheFolder, user, remoteHost):
         outfile.write(f"{password}\n")
         outfile.close()
         # secure the file
-        subprocess.call(['chmod', '0600', fileName])
+        call(['chmod', '0600', fileName])
     else:
         # open the file and read content
         outfile = open(fileName, "r")
@@ -341,7 +341,7 @@ def main():
                 # Mount loop
                 try:
                     print(f"INFO: Attempting to map remote folder to {mapping['LocalFolder']}")
-                    mount_result = subprocess.getoutput(
+                    mount_result = getoutput(
                         f"sudo mount -t cifs -o username={credentials[0]},password={credentials[1]},uid={uid},gid={gid} //{mapping['RemoteHost']}/{mapping['RemoteFolder']} {mapping['LocalFolder']} ")
                 except:
                     printError(f"ERROR: Could not mount network drive //{mapping['RemoteHost']}/{mapping['RemoteFolder']}; reason unknown... ")
