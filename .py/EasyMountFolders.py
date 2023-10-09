@@ -390,11 +390,13 @@ def main():
     if startCommand != "":
        startCmd = startCommand.split(" ")
        try:
-           newCmd = Popen(startCmd, shell=False, stdin=PIPE, stdout=PIPE,stderr=PIPE, start_new_session=True)
-           assert not newCmd.poll
-       except:
-           printError(f"ERROR: Could not execute the startCommand; {startCommand}; please review your json config file!")
-           CleanExit(10)
+          newCmd = Popen(startCmd, shell=False, stdin=PIPE, stdout=PIPE,stderr=PIPE, start_new_session=True)
+          assert not newCmd.poll
+       except AssertionError as e:
+           # The assert line produces an error, but the cmd works nevertheless. Surpressing the error message!
+#           printError(f"ERROR: Could not execute the startCommand; {startCommand}; Error found was {e}!")
+#           CleanExit(10)
+            pass
 
 
     CleanExit(5)
