@@ -99,13 +99,13 @@ The script contains both mount and umount commands, which need to be executed in
 To allow a user to issue the appropriate mount commands, add the folling line to the sudoers file
 
 ```text
-<user-name-here> ALL=(ALL) /usr/bin/mount -t cifs *,/usr/bin/umount -t cifs *
+<user-name-here> ALL=(ALL) /usr/bin/mount -t cifs *, /usr/bin/umount -t cifs *
 ```
 
 With the above line added, the user can execute the script. When the script executes, the user will be prompted for his/her password. If you want to allow the user to execute the script without a sudo password prompt, change the above line to:
 
 ```text
-<user-name-here> ALL=(ALL) NOPASSWD:/usr/bin/mount -t cifs *,/usr/bin/umount -t cifs *
+<user-name-here> ALL=(ALL) NOPASSWD: /usr/bin/mount -t cifs *, /usr/bin/umount -t cifs *
 ```
 
 
